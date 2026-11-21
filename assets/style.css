@@ -149,7 +149,7 @@ section.sec{padding:76px 0;}
 .flow{margin-top:34px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;}
 .flow-t{font-size:12px;font-weight:800;letter-spacing:.16em;color:var(--muted);margin-right:6px;}
 .chip-step{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--ink);}
-.chip-step b{color:var(--blue);margin-right:6px;}
+.chip-step b{color:var(--blue);margin-right:2px;}
 .arrow{color:#94A3B8;font-weight:800;}
 .pl-name{font-size:14px;font-weight:900;letter-spacing:.14em;color:var(--blue);}
 .plan .amount{font-size:46px;font-weight:900;}

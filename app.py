@@ -142,7 +142,11 @@ for p in T["products"]:
       <div class="keys">{"".join(f"<span>{k}</span>" for k in p['keys'])}</div>
       <div class="price">{p['price']}</div>
     </div>"""
-steps = "".join(f'<span class="chip-step"><b>{i:02d}</b>{s}</span>' + ('<span class="arrow">→</span>' if i < len(T["steps"]) else "")
+def cap_words(texto: str) -> str:
+    return " ".join(w[:1].upper() + w[1:] for w in texto.split())
+
+
+steps = "".join(f'<span class="chip-step"><b>{i:02d}</b> {cap_words(s)}</span>' + ('<span class="arrow">→</span>' if i < len(T["steps"]) else "")
                 for i, s in enumerate(T["steps"], start=1))
 html(f"""
 <section class="sec bg2" id="productos"><div class="wrap">
