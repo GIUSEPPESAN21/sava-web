@@ -9,7 +9,7 @@ PHONE_DISPLAY = "+57 322 207 4527"
 LINKEDIN_COMPANY = "https://www.linkedin.com/company/savasoftware/"
 # Redes sociales: pega aquí el enlace de cada perfil. Si queda vacío, el botón no aparece.
 TIKTOK = ""
-YOUTUBE = ""
+YOUTUBE = "https://www.youtube.com/@Giuseppe_san"
 INSTAGRAM = ""
 LINKEDIN_CEO = "https://www.linkedin.com/in/joseph-javier-s%C3%A1nchez-acu%C3%B1a-150410275"
 
