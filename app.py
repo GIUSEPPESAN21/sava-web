@@ -108,7 +108,7 @@ html(f"""
     <div>
       <div class="eyebrow">{T['hero_eyebrow']}</div>
       <div class="h1">{T['hero_title']}</div>
-      <p class="sub">{T['hero_sub']}</p>
+      <div class="keys hero-keys">{"".join(f"<span>{k}</span>" for k in T['hero_sub'])}</div>
       <div class="ctas">
         <a class="btn btn-blue" href="#contacto" target="_self">{T['hero_cta1']} →</a>
         <a class="btn btn-ghost" href="#productos" target="_self">{T['hero_cta2']}</a>
@@ -121,7 +121,7 @@ html(f"""
 """)
 
 # ---------------------------------------------------------------- propuesta de valor
-value = "".join(f'<div class="val"><div class="vt">{t}</div><p>{d}</p></div>' for t, d in T["value"])
+value = "".join(f'<div class="val"><div class="vt">{t}</div><div class="vk">{d}</div></div>' for t, d in T["value"])
 html(f'<section class="valuebar"><div class="wrap vals">{value}</div></section>')
 
 # ---------------------------------------------------------------- productos
@@ -131,7 +131,7 @@ for p in T["products"]:
     <div class="card prod">
       <div class="top"><div class="ico">{ICONS[p['icon']]}</div><span class="tag">{p['tag']}</span></div>
       <div class="pname"><small>SAVA</small>{p['name']}</div>
-      <p>{p['desc']}</p>
+      <div class="keys">{"".join(f"<span>{k}</span>" for k in p['keys'])}</div>
       <div class="price">{p['price']}</div>
     </div>"""
 steps = "".join(f'<span class="chip-step"><b>{i:02d}</b>{s}</span>' + ('<span class="arrow">→</span>' if i < len(T["steps"]) else "")
@@ -175,7 +175,8 @@ html(f"""
       <div class="kicker">{T['about_kicker']}</div>
       <div class="h3">{T['about_name']}</div>
       <div class="role">{T['about_role']}</div>
-      <p>{T['about_bio']}</p>
+      <div class="keys">{"".join(f"<span>{k}</span>" for k in T['about_bio'])}</div>
+      <div class="chips">{"".join(f'<span class="chip">{k}</span>' for k in T['about_team'])}</div>
       {social_row("social-icons light")}
     </div>
   </div>
@@ -187,7 +188,7 @@ html(f"""
 <div class="contact-head" id="contacto"><div class="wrap">
   <div class="kicker">{T['contact_kicker']}</div>
   <div class="h2">{T['contact_title']}</div>
-  <p class="lead">{T['contact_sub']}</p>
+  <div class="keys">{"".join(f"<span>{k}</span>" for k in T['contact_sub'])}</div>
 </div></div>
 """)
 
@@ -241,12 +242,10 @@ def notify_email(data: dict) -> bool:
 
 L = T["contact_labels"]
 with st.container(key="contact_box"):
-    left, right = st.columns([1, 1.5], gap="large")
-    with left:
-        info = "".join(f"<div><small>{k}</small><span>{v}</span></div>" for k, v in T["contact_info"])
-        html(f"""<div class="info">{info}
-          <a class="btn btn-wa" href="{wa_link(T['wa_default'])}" target="_blank">{L['open_wa']}</a></div>""")
-    with right:
+    info = "".join(f"<span><small>{k}</small>{v}</span>" for k, v in T["contact_info"])
+    html(f"""<div class="info-row">{info}</div>
+      <div class="wa-row"><a class="btn btn-wa" href="{wa_link(T['wa_default'])}" target="_blank">{L['open_wa']}</a></div>""")
+    with st.container():
         with st.form("lead_form", clear_on_submit=False, border=False):
             c1, c2 = st.columns(2)
             name = c1.text_input(L["name"], max_chars=100)
