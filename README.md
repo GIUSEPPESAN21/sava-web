@@ -16,6 +16,9 @@ Página web de SAVA Software (software e IA para pymes), hecha en Streamlit, en 
 
 ## Probar en tu computador
 
+Pruebas automáticas (carga de la página y formulario): `pip install pytest` y luego `python -m pytest -q`.
+
+
 ```bash
 pip install -r requirements.txt
 streamlit run app.py

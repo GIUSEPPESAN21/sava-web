@@ -51,6 +51,14 @@ def b64(name: str) -> str:
     return f"data:{mime};base64,{base64.b64encode(data).decode()}"
 
 
+def full_width(fn, *args, **kwargs):
+    """Botón a todo el ancho, compatible con versiones nuevas y antiguas de Streamlit."""
+    try:
+        return fn(*args, width="stretch", **kwargs)
+    except TypeError:
+        return fn(*args, use_container_width=True, **kwargs)
+
+
 def html(block: str) -> None:
     st.markdown(block, unsafe_allow_html=True)
 
@@ -256,7 +264,7 @@ with st.container(key="contact_box"):
             message = st.text_area(L["message"], max_chars=1000, height=90)
             consent = st.checkbox(L["consent"])
             newsletter = st.checkbox(L["newsletter"])
-            sent = st.form_submit_button(L["submit"], use_container_width=True)
+            sent = full_width(st.form_submit_button, L["submit"])
         if sent:
             errors = []
             if not name.strip():
@@ -281,7 +289,7 @@ with st.container(key="contact_box"):
                     st.success(L["ok"])
                 else:
                     st.success(L["ok_nosave"])
-                st.link_button(L["open_wa"], wa_link(wa_text), use_container_width=True)
+                full_width(st.link_button, L["open_wa"], wa_link(wa_text))
 
 # ---------------------------------------------------------------- pie de página
 foot_links = "".join(f'<a href="#{a}" target="_self">{label}</a>' for a, label in T["nav"][1:])
