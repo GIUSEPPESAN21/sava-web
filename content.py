@@ -7,6 +7,10 @@ WHATSAPP_NUMBER = "573222074527"
 EMAIL = "joseph.sanchez@uniminuto.edu.co"
 PHONE_DISPLAY = "+57 322 207 4527"
 LINKEDIN_COMPANY = "https://www.linkedin.com/company/savasoftware/"
+# Redes sociales: pega aquí el enlace de cada perfil. Si queda vacío, el botón no aparece.
+TIKTOK = ""
+YOUTUBE = ""
+INSTAGRAM = ""
 LINKEDIN_CEO = "https://www.linkedin.com/in/joseph-javier-s%C3%A1nchez-acu%C3%B1a-150410275"
 
 TEXT = {
@@ -98,12 +102,14 @@ TEXT = {
                            "submit": "Enviar", "required": "Escribe tu nombre, un mensaje y acepta la autorización de datos.",
                            "ok": "¡Gracias! Termina el envío por WhatsApp con el botón de abajo.",
                            "saved": "También guardamos tu solicitud; te contactaremos pronto.",
-                           "open_wa": "Abrir WhatsApp", "not_sure": "Aún no lo sé"},
+                           "open_wa": "Abrir WhatsApp", "not_sure": "Aún no lo sé",
+                           "phone": "Celular / WhatsApp", "newsletter": "Quiero recibir novedades y promociones de SAVA por correo."},
         "contact_info": [("WhatsApp", PHONE_DISPLAY), ("Correo", EMAIL), ("Ubicación", "Buga, Valle del Cauca")],
         "footer_tag": "Software e IA para pymes: inventarios, ventas y procesos automatizados, simples de usar.",
         "footer_rights": "© 2026 SAVA Software · Buga, Valle del Cauca, Colombia",
+        "follow": "Síguenos",
         "privacy_title": "Tratamiento de datos personales",
-        "privacy": "SAVA Software, representada por Joseph Javier Sánchez Acuña, trata los datos que envías en este formulario (nombre, correo, negocio y mensaje) solo para responder tu solicitud y enviarte información comercial de SAVA, conforme a la Ley 1581 de 2012. Puedes conocer, actualizar, rectificar o pedir la eliminación de tus datos escribiendo a " + EMAIL + ".",
+        "privacy": "SAVA Software, representada por Joseph Javier Sánchez Acuña, trata los datos que envías en este formulario (nombre, correo, celular, negocio y mensaje) solo para responder tu solicitud y enviarte información comercial de SAVA, conforme a la Ley 1581 de 2012. Puedes conocer, actualizar, rectificar o pedir la eliminación de tus datos escribiendo a " + EMAIL + ".",
     },
     "en": {
         "page_title": "SAVA Software | Software and AI for small businesses",
@@ -193,11 +199,13 @@ TEXT = {
                            "submit": "Send", "required": "Please add your name, a message and accept the data authorization.",
                            "ok": "Thank you! Finish sending your message on WhatsApp with the button below.",
                            "saved": "We also saved your request; we will contact you soon.",
-                           "open_wa": "Open WhatsApp", "not_sure": "Not sure yet"},
+                           "open_wa": "Open WhatsApp", "not_sure": "Not sure yet",
+                           "phone": "Phone / WhatsApp", "newsletter": "I want to receive SAVA news and offers by email."},
         "contact_info": [("WhatsApp", PHONE_DISPLAY), ("Email", EMAIL), ("Location", "Buga, Valle del Cauca, Colombia")],
         "footer_tag": "Software and AI for small businesses: inventory, sales and automated processes, simple to use.",
         "footer_rights": "© 2026 SAVA Software · Buga, Valle del Cauca, Colombia",
+        "follow": "Follow us",
         "privacy_title": "Personal data policy",
-        "privacy": "SAVA Software, represented by Joseph Javier Sánchez Acuña, processes the data you send in this form (name, email, business and message) only to answer your request and send you commercial information about SAVA, in accordance with Colombian Law 1581 of 2012. You can access, update, correct or request deletion of your data by writing to " + EMAIL + ".",
+        "privacy": "SAVA Software, represented by Joseph Javier Sánchez Acuña, processes the data you send in this form (name, email, phone, business and message) only to answer your request and send you commercial information about SAVA, in accordance with Colombian Law 1581 of 2012. You can access, update, correct or request deletion of your data by writing to " + EMAIL + ".",
     },
 }

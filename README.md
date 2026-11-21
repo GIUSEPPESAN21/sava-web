@@ -27,16 +27,25 @@ streamlit run app.py
 2. Pulsa **Create app**, elige este repositorio, la rama `main` y el archivo `app.py`.
 3. En **App URL** escribe un nombre corto, por ejemplo `savasoftware`, y pulsa **Deploy**.
 
-## Guardar los mensajes del formulario (opcional)
+## Base de datos de solicitudes
 
-Sin configuración, el formulario abre WhatsApp con el mensaje listo y no guarda datos. Para guardar también cada solicitud en la tabla `leads` de Supabase (la misma de la página anterior), agrega estos secrets en Streamlit Cloud (**Settings → Secrets**):
+Cada envío del formulario (con autorización de datos) se guarda en la tabla `leads` del proyecto de Supabase **sava-web**: nombre, correo, celular, negocio, producto de interés, mensaje, idioma, si quiere novedades y un estado (`nuevo`, `contactado`, `diagnostico`, `demo`, `cliente`, `descartado`). La página solo puede **insertar**; para ver o editar las solicitudes entra a supabase.com → proyecto sava-web → Table Editor → `leads`.
+
+## Aviso por correo con cada solicitud
+
+En Streamlit Cloud → tu app → **Settings → Secrets**, pega esto con tus datos:
 
 ```toml
-SUPABASE_URL = "https://TU-PROYECTO.supabase.co"
-SUPABASE_ANON_KEY = "tu-clave-anon"
+NOTIFY_EMAIL = "tu-correo-personal@gmail.com"   # a dónde llegan los avisos
+SMTP_USER = "tu-correo-personal@gmail.com"      # cuenta Gmail que envía
+SMTP_PASSWORD = "xxxx xxxx xxxx xxxx"           # contraseña de aplicación de Google
 ```
 
-La tabla debe tener las columnas `name`, `email`, `company` y `message`, y una política que permita insertar con la clave anon.
+La contraseña de aplicación se crea en https://myaccount.google.com/apppasswords (requiere verificación en dos pasos). No uses tu contraseña normal.
+
+## Redes sociales
+
+Pega los enlaces en `content.py` (`TIKTOK`, `YOUTUBE`, `INSTAGRAM`). Los íconos aparecen solos en la barra superior, en «Nosotros» y en el pie de página.
 
 ---
 

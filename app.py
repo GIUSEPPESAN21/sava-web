@@ -5,6 +5,8 @@ Los textos están en content.py y el diseño en assets/style.css.
 """
 import base64
 import re
+import smtplib
+from email.message import EmailMessage
 from pathlib import Path
 from urllib.parse import quote
 
@@ -12,9 +14,15 @@ import requests
 import streamlit as st
 from PIL import Image
 
-from content import EMAIL, LINKEDIN_CEO, LINKEDIN_COMPANY, TEXT, WHATSAPP_NUMBER
+from content import (EMAIL, INSTAGRAM, LINKEDIN_CEO, LINKEDIN_COMPANY, PHONE_DISPLAY, TEXT, TIKTOK,
+                     WHATSAPP_NUMBER, YOUTUBE)
 
 BASE = Path(__file__).parent
+
+# Base de datos (Supabase). La clave "publishable" es pública por diseño: la tabla solo permite
+# insertar solicitudes con autorización de datos; nadie puede leerlas sin entrar a Supabase.
+SUPABASE_URL = "https://refhtyobgnyonhexszhz.supabase.co"
+SUPABASE_KEY = "sb_publishable_1e8SknhYLNPfu-0HEGkSJg_XAkCBNgL"
 ASSETS = BASE / "assets"
 
 # ---------------------------------------------------------------- idioma
@@ -46,6 +54,23 @@ def wa_link(text: str) -> str:
     return f"https://wa.me/{WHATSAPP_NUMBER}?text={quote(text)}"
 
 
+SOCIAL_SVG = {
+    "whatsapp": '<svg viewBox="0 0 24 24"><path d="M20.5 3.5A11 11 0 0 0 3.2 17.1L2 22l5-1.3A11 11 0 0 0 20.5 3.5zM12 20.1a9 9 0 0 1-4.6-1.3l-.3-.2-3 .8.8-2.9-.2-.3A9 9 0 1 1 12 20.1zm5-6.7c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1l-.9 1.1c-.2.2-.3.2-.6.1a7.4 7.4 0 0 1-3.7-3.2c-.3-.5.3-.4.8-1.4.1-.2 0-.3 0-.4l-.8-2c-.2-.5-.4-.5-.6-.5h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.2-.2-.5-.3z"/></svg>',
+    "linkedin": '<svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.7 4.8 6.1V21h-4v-5.4c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/></svg>',
+    "tiktok": '<svg viewBox="0 0 24 24"><path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2-2.8V9.1a6.3 6.3 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.4 1.3V6.5a4.5 4.5 0 0 1-4.4-4.5z"/></svg>',
+    "youtube": '<svg viewBox="0 0 24 24"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1z"/></svg>',
+    "instagram": '<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.2 2.3 2.3 4.2 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.2 3.7 2.1 5.6 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.7-.2 5.6-2.1 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.2-3.7-2.1-5.6-5.8-5.8C15 2 14.7 2 12 2z"/></svg>',
+}
+
+
+def social_row(cls: str = "social-icons") -> str:
+    items = [("whatsapp", wa_link(T["wa_default"]), "WhatsApp"), ("linkedin", LINKEDIN_COMPANY, "LinkedIn"),
+             ("tiktok", TIKTOK, "TikTok"), ("youtube", YOUTUBE, "YouTube"), ("instagram", INSTAGRAM, "Instagram")]
+    links = "".join(f'<a href="{u}" target="_blank" rel="noopener" aria-label="{n}" title="{n}">{SOCIAL_SVG[k]}</a>'
+                    for k, u, n in items if u)
+    return f'<div class="{cls}">{links}</div>'
+
+
 ICONS = {
     "stock": '<svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>',
     "flow": '<svg viewBox="0 0 24 24"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 6h7a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h7"/></svg>',
@@ -65,7 +90,7 @@ html(f"""
 <div class="nav"><div class="wrap">
   <a href="#inicio" target="_self"><img src="{b64('logo_blanco.png')}" alt="SAVA Software"></a>
   <div class="links">{links}</div>
-  <div class="right"><span class="lang">{lang_switch}</span>
+  <div class="right">{social_row("social-icons nav-social")}<span class="lang">{lang_switch}</span>
     <a class="btn btn-blue btn-sm" href="{wa_link(T['wa_default'])}" target="_blank">{T['nav_cta']}</a></div>
 </div></div>
 """)
@@ -184,10 +209,8 @@ html(f"""
       <p>{T['about_bio']}</p>
       <p>{T['about_team']}</p>
       <div class="chips">{chips}</div>
-      <p class="social" style="margin-top:18px">
-        <a href="{LINKEDIN_CEO}" target="_blank">LinkedIn</a>
-        <a href="{LINKEDIN_COMPANY}" target="_blank">SAVA Software</a>
-      </p>
+      <p class="social" style="margin-top:18px"><a href="{LINKEDIN_CEO}" target="_blank">LinkedIn · Joseph Sánchez</a></p>
+      <div style="margin-top:12px">{social_row("social-icons light")}</div>
     </div>
   </div>
 </div></section>
@@ -203,22 +226,49 @@ html(f"""
 """)
 
 
-def save_lead(data: dict) -> bool:
-    """Guarda la solicitud en Supabase si hay credenciales en los secrets de Streamlit."""
+def secret(name: str, default: str = "") -> str:
     try:
-        url = st.secrets["SUPABASE_URL"].rstrip("/")
-        key = st.secrets["SUPABASE_ANON_KEY"]
+        return str(st.secrets[name])
     except Exception:
-        return False
+        return default
+
+
+def save_lead(data: dict) -> bool:
+    """Guarda la solicitud en la tabla leads de Supabase."""
+    url = secret("SUPABASE_URL", SUPABASE_URL).rstrip("/")
+    key = secret("SUPABASE_KEY", SUPABASE_KEY)
     try:
-        r = requests.post(
-            f"{url}/rest/v1/leads",
-            headers={"apikey": key, "Authorization": f"Bearer {key}",
-                     "Content-Type": "application/json", "Prefer": "return=minimal"},
-            json=data, timeout=8,
-        )
+        r = requests.post(f"{url}/rest/v1/leads",
+                          headers={"apikey": key, "Authorization": f"Bearer {key}",
+                                   "Content-Type": "application/json", "Prefer": "return=minimal"},
+                          json=data, timeout=8)
         return r.status_code in (200, 201, 204)
     except requests.RequestException:
+        return False
+
+
+def notify_email(data: dict) -> bool:
+    """Envía un aviso al correo personal con cada solicitud nueva (Gmail + contraseña de aplicación)."""
+    user, password, to = secret("SMTP_USER"), secret("SMTP_PASSWORD"), secret("NOTIFY_EMAIL")
+    if not (user and password and to):
+        return False
+    msg = EmailMessage()
+    msg["Subject"] = f"Nueva solicitud SAVA: {data['name']} ({data.get('product') or 'sin producto'})"
+    msg["From"] = f"SAVA Web <{user}>"
+    msg["To"] = to
+    if data.get("email"):
+        msg["Reply-To"] = data["email"]
+    rows = [("Nombre", data["name"]), ("Correo", data.get("email")), ("Celular", data.get("phone")),
+            ("Negocio", data.get("company")), ("Producto", data.get("product")),
+            ("Quiere novedades", "Sí" if data.get("newsletter") else "No"), ("Idioma", data.get("lang")),
+            ("Mensaje", data["message"])]
+    msg.set_content("\n".join(f"{k}: {v or '-'}" for k, v in rows) + "\n\nEnviado desde savasoftware.streamlit.app")
+    try:
+        with smtplib.SMTP_SSL(secret("SMTP_HOST", "smtp.gmail.com"), int(secret("SMTP_PORT", "465")), timeout=10) as s:
+            s.login(user, password)
+            s.send_message(msg)
+        return True
+    except Exception:
         return False
 
 
@@ -234,10 +284,12 @@ with st.container(key="contact_box"):
             c1, c2 = st.columns(2)
             name = c1.text_input(L["name"], max_chars=100)
             email = c2.text_input(L["email"], max_chars=255)
-            company = c1.text_input(L["company"], max_chars=100)
-            product = c2.selectbox(L["product"], [p["name"] for p in T["products"]] + [L["not_sure"]])
+            phone = c1.text_input(L["phone"], max_chars=30)
+            company = c2.text_input(L["company"], max_chars=100)
+            product = st.selectbox(L["product"], [p["name"] for p in T["products"]] + [L["not_sure"]])
             message = st.text_area(L["message"], max_chars=1000, height=110)
             consent = st.checkbox(L["consent"])
+            newsletter = st.checkbox(L["newsletter"])
             sent = st.form_submit_button(L["submit"])
         if sent:
             if not name.strip() or not message.strip() or not consent:
@@ -245,9 +297,11 @@ with st.container(key="contact_box"):
             elif email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email.strip()):
                 st.warning(L["required"])
             else:
-                full = f"{message.strip()}\n\n[{L['product']}: {product}]"
-                saved = save_lead({"name": name.strip(), "email": email.strip() or None,
-                                   "company": company.strip() or None, "message": full})
+                lead = {"name": name.strip(), "email": email.strip() or None, "phone": phone.strip() or None,
+                        "company": company.strip() or None, "product": product, "message": message.strip(),
+                        "lang": lang, "consent": True, "newsletter": bool(newsletter)}
+                saved = save_lead(lead)
+                notify_email(lead)
                 wa_text = f"{T['wa_default']}\n\n{L['name']}: {name.strip()}\n{L['company']}: {company.strip()}\n{L['product']}: {product}\n{message.strip()}"
                 st.success(L["ok"] + (" " + L["saved"] if saved else ""))
                 st.link_button(L["open_wa"], wa_link(wa_text))
@@ -259,10 +313,12 @@ html(f"""
   <div class="row">
     <div><img src="{b64('logo_blanco.png')}" alt="SAVA Software"><p>{T['footer_tag']}</p></div>
     <div>{foot_links}</div>
-    <div><a href="{LINKEDIN_COMPANY}" target="_blank">LinkedIn</a><a href="mailto:{EMAIL}">{EMAIL}</a>
-      <a href="{wa_link(T['wa_default'])}" target="_blank">WhatsApp</a></div>
+    <div><b class="follow">{T['follow']}</b>{social_row()}
+      <a href="mailto:{EMAIL}">{EMAIL}</a><a href="{wa_link(T['wa_default'])}" target="_blank">WhatsApp {PHONE_DISPLAY}</a></div>
   </div>
   <details><summary>{T['privacy_title']}</summary><p style="max-width:900px;margin-top:10px">{T['privacy']}</p></details>
   <div class="copy">{T['footer_rights']}</div>
 </div></div>
 """)
+
+html(f'<a class="wa-float" href="{wa_link(T["wa_default"])}" target="_blank" rel="noopener" aria-label="WhatsApp">{SOCIAL_SVG["whatsapp"]}</a>')
