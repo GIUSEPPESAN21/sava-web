@@ -14,7 +14,12 @@ import requests
 import streamlit as st
 from PIL import Image
 
-from content import (EMAIL, INSTAGRAM, LINKEDIN_CEO, LINKEDIN_COMPANY, PHONE_DISPLAY, TEXT, TIKTOK,
+import importlib
+
+import content
+
+importlib.reload(content)  # Streamlit Cloud: siempre usa la última versión de content.py
+from content import (EMAIL, INSTAGRAM, LINKEDIN_CEO, LINKEDIN_COMPANY, PHONE_DISPLAY, TEXT, TIKTOK,  # noqa: E402
                      WHATSAPP_NUMBER, YOUTUBE)
 
 BASE = Path(__file__).parent
