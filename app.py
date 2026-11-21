@@ -105,7 +105,7 @@ html(f"""
       <div class="h1">{T['hero_title']}</div>
       <p class="sub">{T['hero_sub']}</p>
       <div class="ctas">
-        <a class="btn btn-blue" href="{wa_link(T['wa_default'])}" target="_blank">{T['hero_cta1']}</a>
+        <a class="btn btn-blue" href="#contacto" target="_self">{T['hero_cta1']} →</a>
         <a class="btn btn-ghost" href="#productos" target="_self">{T['hero_cta2']}</a>
       </div>
     </div>
@@ -115,36 +115,28 @@ html(f"""
 </div></section>
 """)
 
-# ---------------------------------------------------------------- problema
-problems = "".join(
-    f'<div class="card"><div class="num">{i}</div><div class="h3">{t}</div><p>{d}</p></div>'
-    for i, (t, d) in enumerate(T["problems"], start=1)
-)
-html(f"""
-<section class="sec"><div class="wrap">
-  <div class="kicker">{T['problem_kicker']}</div>
-  <div class="h2">{T['problem_title']}</div>
-  <div class="cards c3">{problems}</div>
-  <div class="note">{T['problem_note']}</div>
-</div></section>
-""")
+# ---------------------------------------------------------------- propuesta de valor
+value = "".join(f'<div class="val"><div class="vt">{t}</div><p>{d}</p></div>' for t, d in T["value"])
+html(f'<section class="valuebar"><div class="wrap vals">{value}</div></section>')
 
 # ---------------------------------------------------------------- productos
 cards = ""
 for p in T["products"]:
-    items = "".join(f"<li>{x}</li>" for x in p["items"])
     cards += f"""
     <div class="card prod">
       <div class="top"><div class="ico">{ICONS[p['icon']]}</div><span class="tag">{p['tag']}</span></div>
-      <div class="h3">{p['name']}</div><p>{p['desc']}</p>
-      <ul>{items}</ul>
+      <div class="pname"><small>SAVA</small>{p['name']}</div>
+      <p>{p['desc']}</p>
       <div class="price">{p['price']}</div>
     </div>"""
+steps = "".join(f'<span class="chip-step"><b>{i:02d}</b>{s}</span>' + ('<span class="arrow">→</span>' if i < len(T["steps"]) else "")
+                for i, s in enumerate(T["steps"], start=1))
 html(f"""
 <section class="sec bg2" id="productos"><div class="wrap">
   <div class="kicker">{T['products_kicker']}</div>
   <div class="h2">{T['products_title']}</div>
   <div class="cards c4">{cards}</div>
+  <div class="flow"><span class="flow-t">{T['steps_title']}</span>{steps}</div>
 </div></section>
 """)
 
@@ -155,7 +147,7 @@ for p in T["plans"]:
     badge = f'<span class="badge">{p["badge"]}</span>' if p["badge"] else ""
     plans += f"""
     <div class="card plan {'featured' if p['featured'] else ''}">{badge}
-      <div class="h3">{p['name']}</div>
+      <div class="pl-name">{p['name']}</div>
       <div class="amount">{p['price']}</div><div class="unit">{p['unit']}</div>
       <ul>{items}</ul>
     </div>"""
@@ -169,48 +161,17 @@ html(f"""
 </div></section>
 """)
 
-# ---------------------------------------------------------------- proceso
-steps = "".join(
-    f'<div class="step"><b>{i:02d}</b><div class="h4">{t}</div><p>{d}</p></div>'
-    for i, (t, d) in enumerate(T["steps"], start=1)
-)
-html(f"""
-<section class="sec bg2" id="proceso"><div class="wrap">
-  <div class="kicker">{T['process_kicker']}</div>
-  <div class="h2">{T['process_title']}</div>
-  <div class="steps">{steps}</div>
-</div></section>
-""")
-
-# ---------------------------------------------------------------- por qué SAVA
-why = "".join(
-    f'<div class="card"><div class="num">{i}</div><div class="h3">{t}</div><p>{d}</p></div>'
-    for i, (t, d) in enumerate(T["why"], start=1)
-)
-html(f"""
-<section class="sec"><div class="wrap">
-  <div class="kicker">{T['why_kicker']}</div>
-  <div class="h2">{T['why_title']}</div>
-  <div class="cards c3">{why}</div>
-</div></section>
-""")
-
 # ---------------------------------------------------------------- nosotros
-chips = "".join(f'<span class="chip">{a}</span>' for a in T["about_areas"])
 html(f"""
-<section class="sec bg2" id="nosotros"><div class="wrap">
-  <div class="kicker">{T['about_kicker']}</div>
-  <div class="h2">{T['about_title']}</div>
+<section class="sec bg2 about-sec" id="nosotros"><div class="wrap">
   <div class="about">
     <img src="{b64('joseph.jpg')}" alt="{T['about_name']}">
     <div>
+      <div class="kicker">{T['about_kicker']}</div>
       <div class="h3">{T['about_name']}</div>
       <div class="role">{T['about_role']}</div>
       <p>{T['about_bio']}</p>
-      <p>{T['about_team']}</p>
-      <div class="chips">{chips}</div>
-      <p class="social" style="margin-top:18px"><a href="{LINKEDIN_CEO}" target="_blank">LinkedIn · Joseph Sánchez</a></p>
-      <div style="margin-top:12px">{social_row("social-icons light")}</div>
+      {social_row("social-icons light")}
     </div>
   </div>
 </div></section>
@@ -275,37 +236,48 @@ def notify_email(data: dict) -> bool:
 
 L = T["contact_labels"]
 with st.container(key="contact_box"):
-    left, right = st.columns([1, 1.4], gap="large")
+    left, right = st.columns([1, 1.5], gap="large")
     with left:
         info = "".join(f"<div><small>{k}</small><span>{v}</span></div>" for k, v in T["contact_info"])
         html(f"""<div class="info">{info}
-          <a class="btn btn-blue" href="{wa_link(T['wa_default'])}" target="_blank">WhatsApp</a></div>""")
+          <a class="btn btn-wa" href="{wa_link(T['wa_default'])}" target="_blank">{L['open_wa']}</a></div>""")
     with right:
-        with st.form("lead_form", clear_on_submit=False):
+        with st.form("lead_form", clear_on_submit=False, border=False):
             c1, c2 = st.columns(2)
             name = c1.text_input(L["name"], max_chars=100)
-            email = c2.text_input(L["email"], max_chars=255)
-            phone = c1.text_input(L["phone"], max_chars=30)
+            phone = c2.text_input(L["phone"], max_chars=30)
+            email = c1.text_input(L["email"], max_chars=255)
             company = c2.text_input(L["company"], max_chars=100)
-            product = st.selectbox(L["product"], [p["name"] for p in T["products"]] + [L["not_sure"]])
-            message = st.text_area(L["message"], max_chars=1000, height=110)
+            product = st.selectbox(L["product"], ["SAVA " + p["name"].title() for p in T["products"]] + [L["not_sure"]])
+            message = st.text_area(L["message"], max_chars=1000, height=90)
             consent = st.checkbox(L["consent"])
             newsletter = st.checkbox(L["newsletter"])
-            sent = st.form_submit_button(L["submit"])
+            sent = st.form_submit_button(L["submit"], use_container_width=True)
         if sent:
-            if not name.strip() or not message.strip() or not consent:
-                st.warning(L["required"])
-            elif email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email.strip()):
-                st.warning(L["required"])
+            errors = []
+            if not name.strip():
+                errors.append(L["err_name"])
+            if not phone.strip() and not email.strip():
+                errors.append(L["err_contact"])
+            if email.strip() and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email.strip()):
+                errors.append(L["err_email"])
+            if not consent:
+                errors.append(L["err_consent"])
+            if errors:
+                st.error("\n\n".join(errors))
             else:
+                msg_txt = message.strip() or ("Solicitud de diagnóstico" if lang == "es" else "Assessment request")
                 lead = {"name": name.strip(), "email": email.strip() or None, "phone": phone.strip() or None,
-                        "company": company.strip() or None, "product": product, "message": message.strip(),
+                        "company": company.strip() or None, "product": product, "message": msg_txt,
                         "lang": lang, "consent": True, "newsletter": bool(newsletter)}
                 saved = save_lead(lead)
                 notify_email(lead)
-                wa_text = f"{T['wa_default']}\n\n{L['name']}: {name.strip()}\n{L['company']}: {company.strip()}\n{L['product']}: {product}\n{message.strip()}"
-                st.success(L["ok"] + (" " + L["saved"] if saved else ""))
-                st.link_button(L["open_wa"], wa_link(wa_text))
+                wa_text = f"{T['wa_default']}\n\n{name.strip()} · {company.strip()} · {product}\n{message.strip()}"
+                if saved:
+                    st.success(L["ok"])
+                else:
+                    st.success(L["ok_nosave"])
+                st.link_button(L["open_wa"], wa_link(wa_text), use_container_width=True)
 
 # ---------------------------------------------------------------- pie de página
 foot_links = "".join(f'<a href="#{a}" target="_self">{label}</a>' for a, label in T["nav"][1:])
