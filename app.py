@@ -248,14 +248,15 @@ def save_lead(data: dict) -> bool:
 
 
 def notify_email(data: dict) -> bool:
-    """Envía un aviso al correo personal con cada solicitud nueva (Gmail + contraseña de aplicación)."""
+    """Envía un aviso con cada solicitud nueva. NOTIFY_EMAIL acepta varios correos separados por coma."""
     user, password, to = secret("SMTP_USER"), secret("SMTP_PASSWORD"), secret("NOTIFY_EMAIL")
     if not (user and password and to):
         return False
     msg = EmailMessage()
     msg["Subject"] = f"Nueva solicitud SAVA: {data['name']} ({data.get('product') or 'sin producto'})"
     msg["From"] = f"SAVA Web <{user}>"
-    msg["To"] = to
+    recipients = [x.strip() for x in to.replace(";", ",").split(",") if x.strip()]
+    msg["To"] = ", ".join(recipients)
     if data.get("email"):
         msg["Reply-To"] = data["email"]
     rows = [("Nombre", data["name"]), ("Correo", data.get("email")), ("Celular", data.get("phone")),

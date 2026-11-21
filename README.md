@@ -36,7 +36,7 @@ Cada envío del formulario (con autorización de datos) se guarda en la tabla `l
 En Streamlit Cloud → tu app → **Settings → Secrets**, pega esto con tus datos:
 
 ```toml
-NOTIFY_EMAIL = "tu-correo-personal@gmail.com"   # a dónde llegan los avisos
+NOTIFY_EMAIL = "correo1@gmail.com, correo2@dominio.com"   # a dónde llegan los avisos (uno o varios)
 SMTP_USER = "tu-correo-personal@gmail.com"      # cuenta Gmail que envía
 SMTP_PASSWORD = "xxxx xxxx xxxx xxxx"           # contraseña de aplicación de Google
 ```
