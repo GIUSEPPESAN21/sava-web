@@ -172,7 +172,7 @@ html(f"""
 <section class="sec" id="planes"><div class="wrap">
   <div class="kicker">{T['plans_kicker']}</div>
   <div class="h2">{T['plans_title']}</div>
-  <div class="cards c2">{plans}</div>
+  <div class="cards c{len(T['plans'])}">{plans}</div>
   <div class="addon">{T['plans_addon']}</div>
   <div class="note">{T['plans_note']}</div>
 </div></section>
