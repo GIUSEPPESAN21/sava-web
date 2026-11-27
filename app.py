@@ -19,8 +19,10 @@ import importlib
 import content
 
 importlib.reload(content)  # Streamlit Cloud: siempre usa la última versión de content.py
-from content import (EMAIL, INSTAGRAM, LINKEDIN_CEO, LINKEDIN_COMPANY, PHONE_DISPLAY, TEXT, TIKTOK,  # noqa: E402
+from content import (EMAIL, INSTAGRAM, LINKEDIN_CEO, LINKEDIN_COMPANY, PHONE_DISPLAY, PRICES, TEXT, TIKTOK,  # noqa: E402
                      WHATSAPP_NUMBER, YOUTUBE)
+import json  # noqa: E402
+import streamlit.components.v1 as components  # noqa: E402
 
 BASE = Path(__file__).parent
 
@@ -60,7 +62,18 @@ def full_width(fn, *args, **kwargs):
 
 
 def html(block: str) -> None:
-    st.markdown(block, unsafe_allow_html=True)
+    # Sin sangrías: Markdown trata como código las líneas con 4 espacios al inicio.
+    st.markdown("\n".join(line.strip() for line in block.splitlines()), unsafe_allow_html=True)
+
+
+def cop(n: int) -> str:
+    """Pesos colombianos: $950.000 en español y $950,000 en inglés."""
+    txt = f"{n:,}"
+    return "$" + (txt.replace(",", ".") if lang == "es" else txt)
+
+
+def money(n: int, size: str = "") -> str:
+    return f'<span class="money {size}"><span class="cur">$</span>{cop(n)[1:]}<span class="code">COP</span></span>'
 
 
 def wa_link(text: str) -> str:
@@ -72,7 +85,7 @@ SOCIAL_SVG = {
     "linkedin": '<svg viewBox="0 0 24 24"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.1c.5-1 1.8-2 3.8-2 4 0 4.8 2.7 4.8 6.1V21h-4v-5.4c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9z"/></svg>',
     "tiktok": '<svg viewBox="0 0 24 24"><path d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2-2.8V9.1a6.3 6.3 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.4 1.3V6.5a4.5 4.5 0 0 1-4.4-4.5z"/></svg>',
     "youtube": '<svg viewBox="0 0 24 24"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15.1V8.9l5.8 3.1z"/></svg>',
-    "instagram": '<svg viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.2 2.3 2.3 4.2 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.2 3.7 2.1 5.6 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.7-.2 5.6-2.1 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.2-3.7-2.1-5.6-5.8-5.8C15 2 14.7 2 12 2z"/></svg>',
+    "instagram": '<svg viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4zM17.3 5.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zM12 2c-2.7 0-3 0-4.1.1C4.2 2.3 2.3 4.2 2.1 7.9 2 9 2 9.3 2 12s0 3 .1 4.1c.2 3.7 2.1 5.6 5.8 5.8 1.1.1 1.4.1 4.1.1s3 0 4.1-.1c3.7-.2 5.6-2.1 5.8-5.8.1-1.1.1-1.4.1-4.1s0-3-.1-4.1c-.2-3.7-2.1-5.6-5.8-5.8C15 2 14.7 2 12 2z"/></svg>',
 }
 
 
@@ -92,115 +105,204 @@ ICONS = {
 }
 
 html(f"<style>{(ASSETS / 'style.css').read_text(encoding='utf-8')}</style>")
+care_m = cop(PRICES["care"])
 
 # ---------------------------------------------------------------- barra superior
-links = "".join(f'<a href="#{a}" target="_self">{label}</a>' for a, label in T["nav"])
+links = "".join(f'<a href="#{a}" target="_self">{label}</a>' for a, label in T["nav2"])
 lang_switch = (
     f'<a class="{"on" if lang == "es" else ""}" href="?lang=es" target="_self">ES</a>'
     f'<a class="{"on" if lang == "en" else ""}" href="?lang=en" target="_self">EN</a>'
 )
 html(f"""
-<div class="nav"><div class="wrap">
-  <a href="#inicio" target="_self"><img src="{b64('logo_blanco.png')}" alt="SAVA Software"></a>
-  <div class="links">{links}</div>
-  <div class="right">{social_row("social-icons nav-social")}<span class="lang">{lang_switch}</span>
-    <a class="btn btn-blue btn-sm" href="{wa_link(T['wa_default'])}" target="_blank">{T['nav_cta']}</a></div>
+<div class="nav" id="top"><div class="wrap">
+<a class="brand" href="#inicio" target="_self"><img src="{b64('logo_blanco.png')}" alt="SAVA Software"></a>
+<div class="links">{links}</div>
+<div class="right">{social_row("social-icons nav-social")}<span class="lang">{lang_switch}</span>
+<a class="btn btn-blue btn-sm shine" href="{wa_link(T['wa_default'])}" target="_blank">{T['nav_cta']}</a></div>
 </div></div>
 """)
 
 # ---------------------------------------------------------------- portada
-stats = "".join(f"<div><b>{n}</b><span>{t}</span></div>" for n, t in T["stats"])
+M = T["mock"]
+rot = "".join(f"<span>{w}</span>" for w in T["hero_rot"] + T["hero_rot"][:1])
+bars = [38, 52, 46, 64, 58, 82, 71]
+bar_html = "".join(f'<div class="bar" style="--h:{h}%;--d:{i * 0.08:.2f}s"><i></i><small>{d}</small></div>'
+                   for i, (h, d) in enumerate(zip(bars, M["days"])))
+items_html = "".join(
+    f'<div class="row-it"><span class="dot {st_}"></span><span class="nm">{n}</span>'
+    f'<span class="qty {st_}">{q} {M["units"]}</span></div>' for n, q, st_ in M["items"])
+
+
+def stat_value(v):
+    if isinstance(v, str):
+        return f'<b data-count="{PRICES[v]}" data-prefix="$" data-locale="{T["calc"]["locale"]}">{cop(PRICES[v])}</b>'
+    return f'<b data-count="{v}">{v}</b>'
+
+
+stats = "".join(f'<div class="stat" data-reveal>{stat_value(v)}<em>{suf}</em><span>{t}</span></div>' for v, suf, t in T["stats2"])
 html(f"""
-<section class="hero" id="inicio"><div class="wrap">
-  <div class="grid">
-    <div>
-      <div class="eyebrow">{T['hero_eyebrow']}</div>
-      <div class="h1">{T['hero_title']}</div>
-      <div class="keys hero-keys">{"".join(f"<span>{k}</span>" for k in T['hero_sub'])}</div>
-      <div class="ctas">
-        <a class="btn btn-blue" href="#contacto" target="_self">{T['hero_cta1']} →</a>
-        <a class="btn btn-ghost" href="#productos" target="_self">{T['hero_cta2']}</a>
-      </div>
-    </div>
-    <div class="bird"><img src="{b64('colibri_blanco.png')}" alt="SAVA"></div>
-  </div>
-  <div class="stats">{stats}</div>
-</div></section>
+<section class="hero" id="inicio">
+<div class="aurora"><i class="a1"></i><i class="a2"></i><i class="a3"></i></div>
+<div class="gridlines"></div>
+<div class="wrap">
+<div class="hero-grid">
+<div class="hero-copy">
+<div class="pill"><span class="pulse"></span>{T['hero_pill']}</div>
+<h1 class="h1">{T['hero_h1']}</h1>
+<div class="rotator">{T['hero_rot_pre']} <span class="rot"><span class="rot-in">{rot}</span></span></div>
+<p class="lead">{T['hero_lead']}</p>
+<div class="ctas">
+<a class="btn btn-blue btn-lg shine" href="#contacto" target="_self">{T['hero_cta1']} <span class="arr">→</span></a>
+<a class="btn btn-ghost btn-lg" href="#planes" target="_self">{T['nav2'][2][1]}</a>
+</div>
+<div class="trust"><span class="ok">✓</span>{T['hero_trust']}</div>
+</div>
+<div class="hero-visual">
+<img class="bird" src="{b64('colibri_blanco.png')}" alt="">
+<div class="mock">
+<div class="mock-top"><span class="dots"><i></i><i></i><i></i></span><b>{M['app']}</b><span class="live"><span class="pulse"></span>{M['live']}</span></div>
+<div class="mock-body">
+<small>{M['title']}</small>
+<div class="big" data-count="{M['total']}" data-prefix="$" data-locale="{T['calc']['locale']}">{cop(M['total'])}</div>
+<div class="sub">{M['tickets']}</div>
+<div class="bars">{bar_html}</div>
+<div class="list">{items_html}</div>
+</div>
+</div>
+<div class="toast t-alert"><span class="ti">!</span><div><b>{M['alert_t']}</b><span>{M['alert']}</span></div><a>{M['alert_btn']}</a></div>
+<div class="toast t-wa">{SOCIAL_SVG['whatsapp']}<span>{M['wa']}</span><span class="tick">✓✓</span></div>
+</div>
+</div>
+<div class="stats">{stats}</div>
+</div>
+</section>
 """)
 
-# ---------------------------------------------------------------- propuesta de valor
-value = "".join(f'<div class="val"><div class="vt">{t}</div><div class="vk">{d}</div></div>' for t, d in T["value"])
-html(f'<section class="valuebar"><div class="wrap vals">{value}</div></section>')
+# ---------------------------------------------------------------- cinta de palabras clave
+words = "".join(f"<span>{w}</span><i>✦</i>" for w in T["marquee"])
+html(f'<div class="marquee"><div class="track">{words}{words}</div></div>')
 
 # ---------------------------------------------------------------- productos
+pp = T["prod_price"]
+prod_prices = {
+    "stock": f'<small>{pp["stock"][0]}</small>{money(PRICES["license"])}<small>{pp["stock"][1]} {cop(PRICES["subscription"])}</small>',
+    "flow": f'<small>{pp["flow"][0]}</small>{money(PRICES["flow"])}<small>{pp["flow"][1]}</small>',
+    "setup": f'<small>{pp["setup"][0]}</small>{money(PRICES["setup"])}',
+    "care": f'<small>{pp["care"][0]}</small>{money(PRICES["care"])}',
+}
 cards = ""
-for p in T["products"]:
+for i, p in enumerate(T["products"]):
+    k = p["icon"]
     cards += f"""
-    <div class="card prod">
-      <div class="top"><div class="ico">{ICONS[p['icon']]}</div><span class="tag">{p['tag']}</span></div>
-      <div class="pname"><small>SAVA</small>{p['name']}</div>
-      <div class="keys">{"".join(f"<span>{k}</span>" for k in p['keys'])}</div>
-      <div class="price">{p['price']}</div>
-    </div>"""
-def cap_words(texto: str) -> str:
-    return " ".join(w[:1].upper() + w[1:] for w in texto.split())
-
-
-steps = "".join(f'<span class="chip-step"><b>{i:02d}</b> {cap_words(s)}</span>' + ('<span class="arrow">→</span>' if i < len(T["steps"]) else "")
-                for i, s in enumerate(T["steps"], start=1))
+<div class="card prod spot" data-reveal style="--d:{i * 0.08:.2f}s">
+<div class="ico">{ICONS[k]}</div>
+<span class="tag">{p['tag']}</span>
+<div class="pname"><small>SAVA</small>{p['name']}</div>
+<p class="pdesc">{T['prod_desc'][k]}</p>
+<div class="keys">{"".join(f"<span>{x}</span>" for x in p['keys'])}</div>
+<div class="price">{prod_prices[k]}</div>
+</div>"""
 html(f"""
 <section class="sec bg2" id="productos"><div class="wrap">
-  <div class="kicker">{T['products_kicker']}</div>
-  <div class="h2">{T['products_title']}</div>
-  <div class="cards c4">{cards}</div>
-  <div class="flow"><span class="flow-t">{T['steps_title']}</span>{steps}</div>
+<div class="head" data-reveal><div class="kicker">{T['prod_kicker']}</div><h2 class="h2">{T['prod_title']}</h2></div>
+<div class="cards c4">{cards}</div>
 </div></section>
 """)
 
-# ---------------------------------------------------------------- planes
+# ---------------------------------------------------------------- proceso
+proc = "".join(f'<div class="pstep" data-reveal style="--d:{i * 0.1:.2f}s"><div class="node">{i:02d}</div>'
+               f'<div class="pt">{t}</div><p>{d}</p></div>' for i, (t, d) in enumerate(T["proc"], start=1))
+html(f"""
+<section class="sec dark" id="proceso"><div class="wrap">
+<div class="head" data-reveal><div class="kicker">{T['proc_kicker']}</div><h2 class="h2">{T['proc_title']}</h2></div>
+<div class="timeline"><div class="line"><i></i></div>{proc}</div>
+</div></section>
+""")
+
+# ---------------------------------------------------------------- precios
 plans = ""
-for p in T["plans"]:
+for i, p in enumerate(T["plans2"]):
     items = "".join(f"<li>{x}</li>" for x in p["items"])
     badge = f'<span class="badge">{p["badge"]}</span>' if p["badge"] else ""
+    care_line = (T["care_inc"] if p["care"] == "included" else T["care_opt"]).format(m=care_m)
+    prefix = '<span class="pre">' + (p["prefix"] or "&nbsp;") + '</span>'
     plans += f"""
-    <div class="card plan {'featured' if p['featured'] else ''}">{badge}
-      <div class="pl-name">{p['name']}</div>
-      <div class="amount">{p['price']}</div><div class="unit">{p['unit']}</div>
-      <ul>{items}</ul>
-    </div>"""
+<div class="card plan spot {'featured' if p['featured'] else ''}" data-reveal style="--d:{i * 0.1:.2f}s">{badge}
+<div class="pl-sub">{p['sub']}</div>
+<div class="pl-name">{p['name']}</div>
+<div class="amount">{prefix}{money(PRICES[p['key']], 'xl')}</div>
+<div class="unit">{p['once']}</div>
+<div class="care-line {p['care']}">{care_line}</div>
+<ul>{items}</ul>
+<div class="fit">{p['fit']}</div>
+</div>"""
 html(f"""
 <section class="sec" id="planes"><div class="wrap">
-  <div class="kicker">{T['plans_kicker']}</div>
-  <div class="h2">{T['plans_title']}</div>
-  <div class="cards c{len(T['plans'])}">{plans}</div>
-  <div class="addon">{T['plans_addon']}</div>
-  <div class="note">{T['plans_note']}</div>
+<div class="head" data-reveal><div class="kicker">{T['price_kicker']}</div><h2 class="h2">{T['price_title']}</h2></div>
+<div class="cards c3 plans">{plans}</div>
+<div class="addon" data-reveal><span class="ico sm">{ICONS['setup']}</span><span>{T['setup_bar']}</span><span class="addon-price">{money(PRICES['setup'])}</span></div>
+</div></section>
+""")
+
+# ---------------------------------------------------------------- cotizador (HTML + JS en un iframe)
+C = T["calc"]
+calc_cfg = json.dumps({"prices": PRICES, "t": C, "wa": WHATSAPP_NUMBER}, ensure_ascii=False)
+calc_css = (ASSETS / "calc.css").read_text(encoding="utf-8")
+calc_js = (ASSETS / "calc.js").read_text(encoding="utf-8")
+opts = "".join(f'<button type="button" class="opt" data-k="{k}">{lbl}</button>' for k, lbl in C["opts"])
+html(f'<div class="calc-head" data-reveal><div class="kicker">{C["kicker"]}</div><h3 class="h3c">{C["title"]}</h3></div>')
+components.html(f"""<!doctype html><html><head><meta charset="utf-8"><style>{calc_css}</style></head><body>
+<div class="calc">
+<div class="left">
+<div class="q">{C['q']}</div><div class="opts">{opts}</div>
+<label class="tg" id="tg-setup"><input type="checkbox" id="setup"><span class="sw"></span><span class="tl">{C['setup']}</span><span class="tp" id="p-setup"></span></label>
+<label class="tg" id="tg-care"><input type="checkbox" id="care"><span class="sw"></span><span class="tl">{C['care']}</span><span class="tp" id="p-care"></span></label>
+<div class="req" id="req">{C['care_req']}</div>
+</div>
+<div class="right">
+<div class="res"><small>{C['today']}</small><b id="r-today">$0</b></div>
+<div class="res"><small>{C['month']}</small><b id="r-month">$0</b></div>
+<div class="res soft"><small>{C['year']}</small><b id="r-year">$0</b></div>
+<a class="cta" id="cta" target="_blank" rel="noopener">{C['cta']}</a>
+</div></div>
+<script>window.CFG={calc_cfg};</script><script>{calc_js}</script></body></html>""", height=360)
+html(f'<div class="wrap"><p class="price-note">{T["price_note"]}</p></div>')
+
+# ---------------------------------------------------------------- preguntas frecuentes
+faq = ""
+for q, a in T["faq"]:
+    a = a.format(sub=cop(PRICES["subscription"]), care=care_m, lic=cop(PRICES["license"]))
+    faq += f'<details class="qa" data-reveal><summary>{q}<span class="pm"></span></summary><div class="ans"><p>{a}</p></div></details>'
+html(f"""
+<section class="sec bg2" id="faq"><div class="wrap narrow">
+<div class="head" data-reveal><div class="kicker">{T['faq_kicker']}</div><h2 class="h2">{T['faq_title']}</h2></div>
+<div class="faq">{faq}</div>
 </div></section>
 """)
 
 # ---------------------------------------------------------------- nosotros
 html(f"""
-<section class="sec bg2 about-sec" id="nosotros"><div class="wrap">
-  <div class="about">
-    <img src="{b64('joseph.jpg')}" alt="{T['about_name']}">
-    <div>
-      <div class="kicker">{T['about_kicker']}</div>
-      <div class="h3">{T['about_name']}</div>
-      <div class="role">{T['about_role']}</div>
-      <div class="keys">{"".join(f"<span>{k}</span>" for k in T['about_bio'])}</div>
-      <div class="chips">{"".join(f'<span class="chip">{k}</span>' for k in T['about_team'])}</div>
-      {social_row("social-icons light")}
-    </div>
-  </div>
+<section class="sec about-sec" id="nosotros"><div class="wrap">
+<div class="about" data-reveal>
+<div class="ph"><img src="{b64('joseph.jpg')}" alt="{T['about_name']}"></div>
+<div>
+<div class="kicker">{T['about_kicker']}</div>
+<div class="h3">{T['about_name']}</div>
+<div class="role">{T['about_role']}</div>
+<div class="keys">{"".join(f"<span>{k}</span>" for k in T['about_bio'])}</div>
+<div class="chips">{"".join(f'<span class="chip">{k}</span>' for k in T['about_team'])}</div>
+{social_row("social-icons light")}
+</div>
+</div>
 </div></section>
 """)
 
 # ---------------------------------------------------------------- contacto
 html(f"""
 <div class="contact-head" id="contacto"><div class="wrap">
-  <div class="kicker">{T['contact_kicker']}</div>
-  <div class="h2">{T['contact_title']}</div>
-  <div class="keys">{"".join(f"<span>{k}</span>" for k in T['contact_sub'])}</div>
+<div class="kicker">{T['contact_kicker']}</div>
+<h2 class="h2">{T['contact_title']}</h2>
+<div class="keys">{"".join(f"<span>{k}</span>" for k in T['contact_sub'])}</div>
 </div></div>
 """)
 
@@ -296,7 +398,7 @@ with st.container(key="contact_box"):
                 full_width(st.link_button, L["open_wa"], wa_link(wa_text))
 
 # ---------------------------------------------------------------- pie de página
-foot_links = "".join(f'<a href="#{a}" target="_self">{label}</a>' for a, label in T["nav"][1:])
+foot_links = "".join(f'<a href="#{a}" target="_self">{label}</a>' for a, label in T["nav2"])
 html(f"""
 <div class="foot"><div class="wrap">
   <div class="row">
@@ -311,3 +413,7 @@ html(f"""
 """)
 
 html(f'<a class="wa-float" href="{wa_link(T["wa_default"])}" target="_blank" rel="noopener" aria-label="WhatsApp">{SOCIAL_SVG["whatsapp"]}</a>')
+
+# ---------------------------------------------------------------- animaciones (mejora progresiva)
+# Si el navegador bloquea este script, la página se ve completa igual: solo no hay animaciones al bajar.
+components.html(f"<script>{(ASSETS / 'fx.js').read_text(encoding='utf-8')}</script>", height=0)
