@@ -13,40 +13,42 @@ def run(lang="es"):
     return at
 
 
-def campo(at, etiqueta):
-    return next(w for w in at.text_input if w.label.lower().startswith(etiqueta.lower()))
+def page(at):
+    return "\n".join(m.value for m in at.markdown)
 
 
 def test_carga_en_espanol_e_ingles():
     for lang in ("es", "en"):
         at = run(lang)
         assert not at.exception, at.exception
-        assert len(at.text_input) == 4 and len(at.checkbox) == 2
+        assert len(at.text_input) == 0, "ya no hay formulario: el contacto es por WhatsApp e Instagram"
 
 
-def test_formulario_vacio_muestra_errores_claros():
-    at = run("es")
-    at.button[0].click().run()
-    texto = " ".join(e.value for e in at.error)
-    assert "nombre" in texto.lower()
-    assert "whatsapp o tu correo" in texto.lower()
-    assert "autorización" in texto.lower()
+def test_sin_seccion_nosotros():
+    html = page(run("es"))
+    assert 'id="nosotros"' not in html
+    assert "joseph.jpg" not in html and "CEO y fundador" not in html
 
 
-def test_correo_invalido():
-    at = run("es")
-    campo(at, "Nombre").input("Prueba")
-    campo(at, "Correo").input("correo-malo")
-    at.checkbox[0].check()
-    at.button[0].click().run()
-    assert any("correo" in e.value.lower() for e in at.error)
+def test_botones_directos_a_whatsapp_e_instagram():
+    html = page(run("es"))
+    assert 'id="contacto"' in html
+    assert "https://wa.me/573222074527?text=" in html
+    assert "diagn%C3%B3stico%20gratis" in html, "el mensaje de WhatsApp debe ir escrito"
+    assert "https://ig.me/m/savasoftware" in html
 
 
-def test_formulario_completo_se_envia():
-    at = run("es")
-    campo(at, "Nombre").input("Prueba")
-    campo(at, "WhatsApp").input("3001234567")
-    at.checkbox[0].check()
-    at.button[0].click().run()
-    assert not at.error
-    assert at.success, "debería mostrar el mensaje de confirmación"
+def test_precios_en_pesos_colombianos():
+    html = page(run("es"))
+    for precio in ("$950.000", "$4.000.000", "$800.000", "$400.000", "$85.000", "$475.000",
+                   "$1.970.000", "$1.820.000"):
+        assert precio in html, precio
+    assert "COP" in html
+    en = page(run("en"))
+    assert "$950,000" in en and "$4,000,000" in en
+
+
+def test_cotizador_en_la_pagina():
+    html = page(run("es"))
+    assert 'id="cotizador"' in html and "data-calc=" in html
+    assert 'data-k="license"' in html
